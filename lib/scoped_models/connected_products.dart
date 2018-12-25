@@ -11,7 +11,7 @@ mixin ConnectedProductsModel on Model {
 
   bool _isLoading = false;
 
-  Future<dynamic> addProduct(
+  Future<bool> addProduct(
       String title, String description, String image, double price) {
     _isLoading = true;
     notifyListeners();
@@ -26,17 +26,24 @@ mixin ConnectedProductsModel on Model {
     return http
         .post('https://udemy-flutter-course.firebaseio.com/products.json',
             body: json.encode(productData))
-        .then((value) {
-      final Map responseData = json.decode(value.body);
-      final Product newProduct = Product(
-          id: responseData['name'],
-          title: title,
-          description: description,
-          price: price,
-          image: image,
-          userEmail: _authenticatedUser.email,
-          userId: _authenticatedUser.id);
-      _products.addAll({newProduct.id: newProduct});
+        .then((response) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map responseData = json.decode(response.body);
+        final Product newProduct = Product(
+            id: responseData['name'],
+            title: title,
+            description: description,
+            price: price,
+            image: image,
+            userEmail: _authenticatedUser.email,
+            userId: _authenticatedUser.id);
+        _products.addAll({newProduct.id: newProduct});
+        return true;
+      } else {
+        return false;
+      }
+    }).catchError((error) {
+      return false;
     }).whenComplete(() {
       _isLoading = false;
       notifyListeners();
@@ -63,20 +70,32 @@ mixin ProductsModel on ConnectedProductsModel {
     return _showFavorites;
   }
 
-  Product deleteProduct(String id) {
-    var removed = _products.remove(id);
-    notifyListeners();
-    return removed;
-  }
-
-  void fetchProducts() {
+  Future<bool> deleteProduct(String id) {
     _isLoading = true;
     notifyListeners();
-    http
+
+    return http
+        .delete('https://udemy-flutter-course.firebaseio.com/products/$id.json')
+        .then((response) {
+      _products.remove(id);
+      return true;
+    })
+        .catchError(() => false)
+        .whenComplete(() {
+      _isLoading = false;
+      notifyListeners();
+    });
+  }
+
+  Future<bool> fetchProducts() {
+    _isLoading = true;
+    notifyListeners();
+    return http
         .get('https://udemy-flutter-course.firebaseio.com/products.json')
         .then((response) {
       if (response.body != 'null') {
-        final Map<String, dynamic> productListData = json.decode(response.body);
+        final Map<String, dynamic> productListData =
+        json.decode(response.body);
         final Map<String, Product> loadedProducts = {};
         productListData.forEach((productId, productData) {
           final Product product = Product(
@@ -91,15 +110,17 @@ mixin ProductsModel on ConnectedProductsModel {
           loadedProducts[productId] = product;
         });
         _products.addAll(loadedProducts);
-        notifyListeners();
+        return true;
       }
-    }).whenComplete(() {
+    })
+        .catchError(() => false)
+        .whenComplete(() {
       _isLoading = false;
       notifyListeners();
     });
   }
 
-  Future<dynamic> updateProduct(
+  Future<bool> updateProduct(
       String id, String title, String description, String image, double price) {
     _isLoading = true;
     notifyListeners();
@@ -127,13 +148,14 @@ mixin ProductsModel on ConnectedProductsModel {
           userEmail: product.userEmail,
           userId: product.userId,
           favorite: product.favorite);
-    }).whenComplete(() {
+
+      return true;
+    })
+        .catchError(() => false)
+        .whenComplete(() {
       _isLoading = false;
       notifyListeners();
     });
-
-//    deleteProduct(id);
-//    addProduct(id, newTitle, description, image, price);
   }
 
   void toggleFavorite(String id) {
