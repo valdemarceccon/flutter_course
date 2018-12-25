@@ -5,10 +5,15 @@ import 'package:flutter_course/widgets/products/product_card.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class Products extends StatelessWidget {
-  Widget _buildProductList(List<Product> products) {
+  Widget _buildProductList(MainModel model) {
+    final List<Product> products = model.displayedProducts;
     Widget productCards;
 
-    if (products.length > 0) {
+    if (model.isLoading) {
+      productCards = Center(
+        child: CircularProgressIndicator(),
+      );
+    } else if (products.length > 0) {
       productCards = ListView.builder(
         itemBuilder: (context, index) => ProductCard(index),
         itemCount: products.length,
@@ -24,7 +29,7 @@ class Products extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
-        return _buildProductList(model.displayedProducts);
+        return _buildProductList(model);
       },
     );
   }

@@ -3,7 +3,24 @@ import 'package:flutter_course/scoped_models/main.dart';
 import 'package:flutter_course/widgets/products/products.dart';
 import 'package:scoped_model/scoped_model.dart';
 
-class ProductsPage extends StatelessWidget {
+class ProductsPage extends StatefulWidget {
+  final MainModel mainModel;
+
+  ProductsPage(this.mainModel);
+
+  @override
+  ProductsPageState createState() {
+    return new ProductsPageState();
+  }
+}
+
+class ProductsPageState extends State<ProductsPage> {
+  @override
+  void initState() {
+    super.initState();
+    widget.mainModel.fetchProducts();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

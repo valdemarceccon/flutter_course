@@ -19,7 +19,7 @@ class ProductCard extends StatelessWidget {
         return Card(
           child: Column(
             children: <Widget>[
-              Image.asset(product.image),
+              Image.network(product.image),
               _buildTitlePriceRow(product),
               AddressTag('asdfasdfasdf'),
               Text(product.userEmail),
@@ -40,14 +40,14 @@ class ProductCard extends StatelessWidget {
           icon: Icon(Icons.info),
           color: Theme.of(context).accentColor,
           onPressed: () =>
-              Navigator.pushNamed<bool>(context, '/product/$productIndex'),
+              Navigator.pushNamed<bool>(context, '/product/${product.id}'),
         ),
         IconButton(
           icon: product.favorite
               ? Icon(Icons.favorite)
               : Icon(Icons.favorite_border),
           color: Colors.red,
-          onPressed: () => model.toggleFavorite(product.title),
+          onPressed: () => model.toggleFavorite(product.id),
         )
       ],
     );

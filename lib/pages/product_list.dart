@@ -16,15 +16,21 @@ class ProductListPage extends StatelessWidget {
               background: Container(
                 color: Colors.red,
               ),
-              key: Key(product.title),
+              key: Key(product.id),
               onDismissed: (DismissDirection direction) {
-                model.deleteProduct(product.title);
+                final Product deletedProduct = model.deleteProduct(product.id);
+
+                Scaffold.of(context).showSnackBar(SnackBar(
+                  content: Text('${product.title} deleted'),
+                  action: SnackBarAction(label: 'Undo', onPressed: () {}),
+                  duration: Duration(seconds: 40),
+                ));
               },
               child: Column(
                 children: <Widget>[
                   ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: AssetImage(product.image),
+                      backgroundImage: NetworkImage(product.image),
                     ),
                     title: Text(product.title),
                     subtitle: Text('\$${product.price}'),

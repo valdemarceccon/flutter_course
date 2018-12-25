@@ -18,7 +18,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     'title': null,
     'description': null,
     'price': null,
-    'image': 'assets/food.jpg'
+    'image': 'https://fortunedotcom.files.wordpress.com/2017/02/chocolate.gif'
   };
 
   @override
@@ -68,12 +68,16 @@ class _ProductEditPageState extends State<ProductEditPage> {
       builder: (BuildContext context, Widget child, MainModel model) {
         return ScopedModelDescendant<MainModel>(
           builder: (context, child, model) {
-            return RaisedButton(
-              child: Text('Save'),
-              color: Theme.of(context).accentColor,
-              textColor: Theme.of(context).primaryColorLight,
-              onPressed: () => _submitForm(model),
-            );
+            return model.isLoading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : RaisedButton(
+                    child: Text('Save'),
+                    color: Theme.of(context).accentColor,
+                    textColor: Theme.of(context).primaryColorLight,
+                    onPressed: () => _submitForm(model),
+                  );
           },
         );
       },
@@ -84,17 +88,25 @@ class _ProductEditPageState extends State<ProductEditPage> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
       if (widget.product != null) {
-        model.updateProduct(
+        model
+            .updateProduct(
+          widget.product.id,
           _formData['title'],
           _formData['description'],
           _formData['image'],
           _formData['price'],
-        );
+        )
+            .then((_) {
+          Navigator.pushReplacementNamed(context, '/products');
+        });
       } else {
-        model.addProduct(_formData['title'], _formData['description'],
-            _formData['image'], _formData['price']);
+        model
+            .addProduct(_formData['title'], _formData['description'],
+                _formData['image'], _formData['price'])
+            .then((_) {
+          Navigator.pushReplacementNamed(context, '/products');
+        });
       }
-      Navigator.pushReplacementNamed(context, '/products');
     }
   }
 
@@ -129,7 +141,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         return TextFormField(
           initialValue: widget.product == null ? '' : widget.product.title,
           decoration: InputDecoration(labelText: 'Product Title'),
-          validator: (title) => _validateTitle(title, model),
+          validator: _emptyTextFieldValidation,
           onSaved: (String value) {
             _formData['title'] = value;
           },
@@ -143,20 +155,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
       return "Cannot be empty";
     }
 
-    return null;
-  }
-
-  String _validateTitle(String value, MainModel model) {
-    if (_emptyTextFieldValidation(value) != null) {
-      return _emptyTextFieldValidation(value);
-    } else {
-      if ((widget.product == null && model.allProducts.containsKey(value)) ||
-          (widget.product != null &&
-              widget.product.title != value &&
-              model.allProducts.containsKey(value))) {
-        return 'Product title must be unique';
-      }
-    }
     return null;
   }
 

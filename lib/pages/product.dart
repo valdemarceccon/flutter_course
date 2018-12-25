@@ -7,9 +7,9 @@ import 'package:flutter_course/widgets/ui_elements/title_default.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class ProductPage extends StatelessWidget {
-  final int index;
+  final String _id;
 
-  const ProductPage(this.index);
+  const ProductPage(this._id);
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,8 @@ class ProductPage extends StatelessWidget {
         return Future.value(false);
       },
       child: ScopedModelDescendant<MainModel>(builder: (context, child, model) {
-        var product = model.displayedProducts[index];
+        var product =
+            model.displayedProducts.firstWhere((product) => product.id == _id);
         return Scaffold(
           appBar: AppBar(
             title: Text('Product Page'),
@@ -27,7 +28,7 @@ class ProductPage extends StatelessWidget {
           body: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Image.asset(product.image),
+                Image.network(product.image),
                 Container(
                   child: TitleDefault(product.title),
                   padding: EdgeInsets.all(10.0),
